@@ -1,0 +1,301 @@
+{
+  "name": "Article AI Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "process-article",
+        "options": {}
+      },
+      "id": "074d21f3-45aa-46d1-bc9e-af595dece17d",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        -48
+      ],
+      "webhookId": "693efdbf-f6fa-4b09-b63a-7b8db1214f53"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer fc-805141dba2b84927b41de6aff5558887"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"url\": $json.body.article_url } }}",
+        "options": {}
+      },
+      "id": "7d09ebad-ebaa-4408-b0c6-d0ccce5167b0",
+      "name": "Firecrawl Scrape",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1cmKgCxF-vl9hTsRa4QYiwuzN_5I-YZHCIMImn_rt0qU",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cmKgCxF-vl9hTsRa4QYiwuzN_5I-YZHCIMImn_rt0qU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            " Session ID": "={{ $('Webhook').item.json.body.session_id }}",
+            "Article URL": "={{ $('Webhook').item.json.body.article_url }}",
+            "Summary": "={{ $('OpenAI Summarize').item.json.choices[0].message.content }}",
+            "Insights": "={{ $json.choices[0].message.content }}",
+            "Email": "={{ $('Webhook').item.json.body.email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": " Session ID",
+              "displayName": " Session ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Article URL",
+              "displayName": "Article URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Insights",
+              "displayName": "Insights",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "8d79b75a-f896-4ad0-a20f-688679680295",
+      "name": "Google Sheets Append",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        288,
+        -48
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pgGXsNSDeLvW4Tbh",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "ekantabanik@gmail.com",
+        "toEmail": "={{ $('Webhook').item.json.body.email }}",
+        "subject": "Your Article Summary",
+        "options": {}
+      },
+      "id": "bdaa0595-a89a-451b-9819-4927dc63ee8b",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        544,
+        -48
+      ],
+      "webhookId": "2007c89b-ffbe-4214-949d-db8ee31f3fd7",
+      "credentials": {
+        "smtp": {
+          "id": "zeQfMC6Q5qBqhAVt",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"model\": \"llama-3.3-70b-versatile\", \"messages\": [ {\"role\":\"system\",\"content\":\"Extract 3-5 key insights from the following article as a numbered list.\"}, {\"role\":\"user\",\"content\": $('Firecrawl Scrape').item.json.data.markdown } ] } }}",
+        "options": {}
+      },
+      "id": "3a305eff-fbd0-45f1-902c-3e9f8aef43b5",
+      "name": "OpenAI Insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"model\": \"llama-3.3-70b-versatile\", \"messages\": [ {\"role\":\"system\",\"content\":\"Summarize the following article in 3-5 concise sentences.\"}, {\"role\":\"user\",\"content\": $json.data.markdown } ] } }}",
+        "options": {}
+      },
+      "id": "28b1c90d-b5de-4c56-891d-9932825c2ee9",
+      "name": "OpenAI Summarize",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -208,
+        -48
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl Scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Scrape": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Append": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Insights": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Append",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Summarize": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d1c7fca3-d2a8-4067-9b1e-e3cad687d2e7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f16b05471fbecdb45e14785e6885d3aa19bebee2cb641884bfa74f900d13ace1"
+  },
+  "nodeGroups": [],
+  "id": "Bz0WTEJqxakMHLAg",
+  "tags": []
+}
