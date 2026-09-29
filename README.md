@@ -31,5 +31,9 @@ https://jam.dev/c/6c1df852-cae2-47fc-8555-b3d3a640fbf3?startFrom=0.11
 
 AI_AGENT DATA STORE : https://docs.google.com/spreadsheets/d/1cmKgCxF-vl9hTsRa4QYiwuzN_5I-YZHCIMImn_rt0qU/edit?gid=0#gid=0 
 
-<img width="949" height="413" alt="image" src="https://github.com/user-attachments/assets/41d44356-e220-4e00-9cbe-c6d50b3a0c03" />
+<img width="2400" height="1720" alt="image" src="https://github.com/user-attachments/assets/ea55afd5-710f-4d9a-ac1d-49c4a8bb2645" />
+
+
+<img width="1209" height="739" alt="image" src="https://github.com/user-attachments/assets/0cb1e5fc-1ad0-4afd-8a0f-57dd22c26c36" />
+
 
